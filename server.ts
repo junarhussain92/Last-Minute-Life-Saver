@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
@@ -31,7 +32,7 @@ async function startServer() {
 
   // Define some helpers for default/guest users
   const GUEST_UID = "guest-user-123";
-  const CURRENT_TIME = "2026-06-25T09:12:00-07:00"; // Based on context
+  const CURRENT_TIME = process.env.CURRENT_TIME || new Date().toISOString();
 
   // In-memory cache for AI reminders to prevent quota exhaustion
   const remindersCache: Record<string, { reminders: string[]; expiresAt: number }> = {};

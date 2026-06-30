@@ -28,7 +28,8 @@ import LeaderboardView from "./components/LeaderboardView";
 // Icons
 import { 
   Clock, ShieldAlert, CheckCircle, Calendar, Trophy, Bot, Mic, 
-  Bell, User, LogOut, Sun, Moon, Shield, Award, ClipboardList, Flame, Sparkles
+  Bell, User, LogOut, Sun, Moon, Shield, Award, ClipboardList, Flame, Sparkles,
+  Menu, X
 } from "lucide-react";
 
 export default function App() {
@@ -36,6 +37,7 @@ export default function App() {
   const [theme, setTheme] = useState<"dark" | "light">("light");
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Core workspace state
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -326,16 +328,29 @@ export default function App() {
       )}
 
       {/* Navigation Topbar */}
-      <header className={`sticky top-0 z-40 backdrop-blur-md border-b py-4 px-6 flex justify-between items-center transition-colors duration-250 ${theme === "dark" ? "bg-zinc-950/85 border-white/5" : "bg-white/85 border-zinc-200"}`}>
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-purple-600 to-pink-600 flex items-center justify-center text-white shadow-lg shadow-purple-500/20">
+      <header className={`sticky top-0 z-40 backdrop-blur-md border-b py-3 sm:py-4 px-4 sm:px-6 flex justify-between items-center transition-colors duration-250 ${theme === "dark" ? "bg-zinc-950/85 border-white/5" : "bg-white/85 border-zinc-200"}`}>
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          {currentUser && profile && (
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className={`lg:hidden p-2 rounded-xl transition-all cursor-pointer shrink-0 ${
+                theme === "dark" 
+                  ? "hover:bg-white/10 text-zinc-400 hover:text-white" 
+                  : "hover:bg-zinc-100 text-zinc-600 hover:text-zinc-900 border border-zinc-200 shadow-sm"
+              }`}
+              title="Toggle Menu"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+          )}
+          <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-gradient-to-tr from-purple-600 to-pink-600 flex items-center justify-center text-white shadow-lg shadow-purple-500/20 shrink-0">
             <Clock className="h-5 w-5" />
           </div>
-          <div>
-            <h1 className={`text-md font-black tracking-tight ${theme === "dark" ? "bg-gradient-to-r from-white via-purple-300 to-pink-300 bg-clip-text text-transparent" : "text-zinc-900"}`}>
+          <div className="min-w-0">
+            <h1 className={`text-xs sm:text-sm md:text-base font-black tracking-tight truncate ${theme === "dark" ? "bg-gradient-to-r from-white via-purple-300 to-pink-300 bg-clip-text text-transparent" : "text-zinc-900"}`}>
               LAST-MINUTE LIFE SAVER
             </h1>
-            <span className="text-[10px] font-mono text-purple-600 dark:text-pink-400 block tracking-widest leading-none font-bold">AI PRODUCTIVITY CO-PILOT</span>
+            <span className="text-[8px] sm:text-[10px] font-mono text-purple-600 dark:text-pink-400 block tracking-widest leading-none font-bold truncate">AI PRODUCTIVITY CO-PILOT</span>
           </div>
         </div>
 
@@ -374,42 +389,156 @@ export default function App() {
         </div>
       </header>
 
+      {/* Mobile Drawer Navigation Overlay */}
+      <AnimatePresence>
+        {isMobileMenuOpen && currentUser && profile && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="fixed inset-0 z-45 bg-black/60 backdrop-blur-xs lg:hidden"
+            />
+            {/* Drawer */}
+            <motion.div
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 220 }}
+              className={`fixed top-0 bottom-0 left-0 z-50 w-72 max-w-[80vw] p-6 flex flex-col justify-between shadow-2xl lg:hidden ${
+                theme === "dark" ? "bg-zinc-950 border-r border-white/5" : "bg-white border-r border-zinc-200"
+              }`}
+            >
+              <div className="space-y-6">
+                {/* Drawer Header */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-purple-600 to-pink-600 flex items-center justify-center text-white shadow">
+                      <Clock className="h-4 w-4" />
+                    </div>
+                    <span className={`text-xs font-black tracking-tight ${theme === "dark" ? "text-white" : "text-zinc-900"}`}>
+                      LIFE SAVER MENU
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`p-1.5 rounded-lg ${
+                      theme === "dark" ? "hover:bg-white/10 text-zinc-400" : "hover:bg-zinc-100 text-zinc-500"
+                    }`}
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+
+                {/* Profile section in drawer */}
+                <div className={`p-4 rounded-xl border flex items-center gap-3 ${theme === "dark" ? "bg-zinc-900/50 border-white/5" : "bg-zinc-50 border-zinc-150"}`}>
+                  <div className="h-9 w-9 rounded-full bg-purple-100 dark:bg-purple-950/40 flex items-center justify-center text-purple-600 dark:text-purple-400 font-bold text-xs shrink-0">
+                    {profile.name ? profile.name.charAt(0) : "U"}
+                  </div>
+                  <div className="min-w-0">
+                    <div className={`text-xs font-bold truncate ${theme === "dark" ? "text-white" : "text-zinc-900"}`}>{profile.name}</div>
+                    <div className="text-[9px] font-mono text-purple-600 dark:text-purple-400 uppercase font-black">{profile.points} XP</div>
+                  </div>
+                </div>
+
+                {/* Navigation Items */}
+                <nav className="space-y-1.5">
+                  {[
+                    { id: "Dashboard", label: "Dashboard", icon: Trophy },
+                    { id: "Tasks", label: "Smart Tasks", icon: ClipboardList },
+                    { id: "Scheduler", label: "AI Scheduler", icon: Calendar },
+                    { id: "Goals", label: "Goals Tracker", icon: Award },
+                    { id: "Habits", label: "Atomic Habits", icon: Flame },
+                    { id: "Coach", label: "AI Saviour Coach", icon: Bot },
+                    { id: "Leaderboard", label: "Leaderboard & Badges", icon: Trophy }
+                  ].map((item) => {
+                    const IconComp = item.icon;
+                    const active = activeTab === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => {
+                          setActiveTab(item.id);
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-semibold transition-all text-left cursor-pointer ${
+                          active 
+                            ? theme === "dark"
+                              ? "bg-gradient-to-r from-purple-950/40 to-pink-950/20 border border-purple-500/40 text-white font-extrabold shadow-md"
+                              : "bg-purple-100/80 border border-purple-200 text-purple-900 font-extrabold shadow-sm"
+                            : theme === "dark"
+                              ? "text-zinc-400 hover:text-white hover:bg-white/5 border border-transparent"
+                              : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 border border-transparent"
+                        }`}
+                      >
+                        <IconComp className={`h-4 w-4 ${active ? "text-purple-600" : ""}`} />
+                        <span>{item.label}</span>
+                      </button>
+                    );
+                  })}
+                </nav>
+              </div>
+
+              {/* Drawer Footer */}
+              <div className="space-y-3">
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className={`w-full py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                    theme === "dark" 
+                      ? "bg-red-500/10 text-red-400 hover:bg-red-500/20" 
+                      : "bg-red-50 text-red-600 hover:bg-red-100 border border-red-200/50"
+                  }`}
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>Log Out</span>
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       {/* Main Container */}
       {!currentUser || !profile ? (
-        <div className="max-w-4xl mx-auto px-6 py-16 z-10 relative flex flex-col items-center justify-center min-h-[75vh]">
-          <div className={`w-full max-w-2xl p-8 rounded-3xl border shadow-xl backdrop-blur-md transition-all duration-300 ${theme === "dark" ? "bg-zinc-900/70 border-white/5 shadow-purple-950/15" : "bg-white border-zinc-200/80 shadow-lg"}`}>
-            <div className="text-center space-y-3 mb-10">
-              <div className="mx-auto h-14 w-14 rounded-2xl bg-gradient-to-tr from-purple-600 to-pink-600 flex items-center justify-center text-white shadow-lg shadow-purple-500/25">
-                <Clock className="h-7 w-7" />
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-16 z-10 relative flex flex-col items-center justify-center min-h-[75vh]">
+          <div className={`w-full max-w-2xl p-6 sm:p-8 rounded-3xl border shadow-xl backdrop-blur-md transition-all duration-300 ${theme === "dark" ? "bg-zinc-900/70 border-white/5 shadow-purple-950/15" : "bg-white border-zinc-200/80 shadow-lg"}`}>
+            <div className="text-center space-y-3 mb-8 sm:mb-10">
+              <div className="mx-auto h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-gradient-to-tr from-purple-600 to-pink-600 flex items-center justify-center text-white shadow-lg shadow-purple-500/25">
+                <Clock className="h-6 w-6 sm:h-7 sm:w-7" />
               </div>
-              <h2 className={`text-2xl font-extrabold tracking-tight ${theme === "dark" ? "text-white" : "text-zinc-900"}`}>
+              <h2 className={`text-xl sm:text-2xl font-extrabold tracking-tight ${theme === "dark" ? "text-white" : "text-zinc-900"}`}>
                 Last-Minute Life Saver
               </h2>
-              <p className={`text-sm leading-relaxed max-w-md mx-auto ${theme === "dark" ? "text-zinc-400" : "text-zinc-600"}`}>
+              <p className={`text-xs sm:text-sm leading-relaxed max-w-md mx-auto ${theme === "dark" ? "text-zinc-400" : "text-zinc-600"}`}>
                 Your intelligent co-pilot designed to defeat procrastination, align focus blocks with your peak productivity biological hours, and secure high-stress project goals.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
-              <div className={`p-4.5 rounded-2xl border transition-colors ${theme === "dark" ? "bg-black/40 border-white/5" : "bg-zinc-50 border-zinc-200/60"}`}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-8 sm:mb-10">
+              <div className={`p-4 rounded-2xl border transition-colors ${theme === "dark" ? "bg-black/40 border-white/5" : "bg-zinc-50 border-zinc-200/60"}`}>
                 <h4 className="text-xs font-bold font-mono text-purple-600 dark:text-purple-400 uppercase mb-1 flex items-center gap-1.5">
                   <Sparkles className="h-4 w-4" /> AI Peak Scheduler
                 </h4>
                 <p className={`text-[11px] leading-normal ${theme === "dark" ? "text-zinc-400" : "text-zinc-600"}`}>Maps and schedules study/task blocks according to your customized daily biological energy hours.</p>
               </div>
-              <div className={`p-4.5 rounded-2xl border transition-colors ${theme === "dark" ? "bg-black/40 border-white/5" : "bg-zinc-50 border-zinc-200/60"}`}>
+              <div className={`p-4 rounded-2xl border transition-colors ${theme === "dark" ? "bg-black/40 border-white/5" : "bg-zinc-50 border-zinc-200/60"}`}>
                 <h4 className="text-xs font-bold font-mono text-pink-600 dark:text-pink-400 uppercase mb-1 flex items-center gap-1.5">
                   <Mic className="h-4 w-4" /> Voice Command Deck
                 </h4>
                 <p className={`text-[11px] leading-normal ${theme === "dark" ? "text-zinc-400" : "text-zinc-600"}`}>Speak naturally or click suggestions to append tasks, complete logs, or update your schedule instantly.</p>
               </div>
-              <div className={`p-4.5 rounded-2xl border transition-colors ${theme === "dark" ? "bg-black/40 border-white/5" : "bg-zinc-50 border-zinc-200/60"}`}>
+              <div className={`p-4 rounded-2xl border transition-colors ${theme === "dark" ? "bg-black/40 border-white/5" : "bg-zinc-50 border-zinc-200/60"}`}>
                 <h4 className="text-xs font-bold font-mono text-yellow-600 dark:text-yellow-500 uppercase mb-1 flex items-center gap-1.5">
                   <Trophy className="h-4 w-4" /> Gamified Milestones
                 </h4>
                 <p className={`text-[11px] leading-normal ${theme === "dark" ? "text-zinc-400" : "text-zinc-600"}`}>Earn points and level up! Log daily achievements to unlock collectible status badges.</p>
               </div>
-              <div className={`p-4.5 rounded-2xl border transition-colors ${theme === "dark" ? "bg-black/40 border-white/5" : "bg-zinc-50 border-zinc-200/60"}`}>
+              <div className={`p-4 rounded-2xl border transition-colors ${theme === "dark" ? "bg-black/40 border-white/5" : "bg-zinc-50 border-zinc-200/60"}`}>
                 <h4 className="text-xs font-bold font-mono text-blue-600 dark:text-blue-500 uppercase mb-1 flex items-center gap-1.5">
                   <Bot className="h-4 w-4" /> AI Saviour Coach
                 </h4>
@@ -432,9 +561,9 @@ export default function App() {
           </div>
         </div>
       ) : (
-        <div className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8 z-10 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 z-10 relative">
           {/* Navigation Rail / Sidebar */}
-          <nav className="lg:col-span-3 space-y-2">
+          <nav className="hidden lg:block lg:col-span-3 space-y-2">
             {[
               { id: "Dashboard", label: "Dashboard", icon: Trophy },
               { id: "Tasks", label: "Smart Tasks", icon: ClipboardList },
@@ -450,7 +579,7 @@ export default function App() {
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-semibold transition-all text-left ${
+                  className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-semibold transition-all text-left cursor-pointer ${
                     active 
                       ? theme === "dark"
                         ? "bg-gradient-to-r from-purple-950/40 to-pink-950/20 border border-purple-500/40 text-white font-extrabold shadow-md"
@@ -468,7 +597,7 @@ export default function App() {
           </nav>
 
           {/* Dynamic Workspace Workspace Stage */}
-          <main className="lg:col-span-9 min-h-[500px]">
+          <main className="col-span-1 lg:col-span-9 min-h-[500px]">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeTab}

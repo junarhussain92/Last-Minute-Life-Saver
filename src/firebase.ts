@@ -6,17 +6,35 @@ let firebaseApp: any = null;
 let firebaseAuth: any = null;
 let isRealFirebase = false;
 
+// Check for VITE_ environment variables first
+const envConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
+};
+
 // Wrap initialization in a promise to avoid top-level await build limits
 const initFirebasePromise = (async () => {
   try {
-    const res = await fetch("/firebase-applet-config.json");
-    if (res.ok) {
-      const config = await res.json();
-      if (config && config.apiKey) {
-        firebaseApp = initializeApp(config);
-        firebaseAuth = getAuth(firebaseApp);
-        isRealFirebase = true;
-        console.log("[Firebase] Successfully initialized with cloud project credentials.");
+    if (envConfig.apiKey) {
+      firebaseApp = initializeApp(envConfig);
+      firebaseAuth = getAuth(firebaseApp);
+      isRealFirebase = true;
+      console.log("[Firebase] Successfully initialized with environment variables.");
+    } else {
+      const res = await fetch("/firebase-applet-config.json");
+      if (res.ok) {
+        const config = await res.json();
+        if (config && config.apiKey) {
+          firebaseApp = initializeApp(config);
+          firebaseAuth = getAuth(firebaseApp);
+          isRealFirebase = true;
+          console.log("[Firebase] Successfully initialized with cloud project config JSON.");
+        }
       }
     }
   } catch (e) {

@@ -25,11 +25,31 @@ const DEFAULT_DB: DBStructure = {
   chats: {}
 };
 
-// Initialize Firebase dynamically if configuration exists
+// Initialize Firebase dynamically if configuration or environment variables exist
 let db: any = null;
 let isFirestoreEnabled = false;
 
-if (fs.existsSync(CONFIG_PATH)) {
+const envConfig = {
+  apiKey: process.env.FIREBASE_API_KEY,
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.FIREBASE_APP_ID,
+  measurementId: process.env.FIREBASE_MEASUREMENT_ID,
+  firestoreDatabaseId: process.env.FIREBASE_DATABASE_ID || process.env.FIREBASE_FIRESTORE_DATABASE_ID
+};
+
+if (envConfig.apiKey) {
+  try {
+    const app = initializeApp(envConfig);
+    db = getFirestore(app, envConfig.firestoreDatabaseId || "(default)");
+    isFirestoreEnabled = true;
+    console.log(`[Server DBStore] Firestore client initialized successfully from environment variables on database: ${envConfig.firestoreDatabaseId || "(default)"}`);
+  } catch (e) {
+    console.error("[Server DBStore] Error initializing Firestore with environment variables:", e);
+  }
+} else if (fs.existsSync(CONFIG_PATH)) {
   try {
     const config = JSON.parse(fs.readFileSync(CONFIG_PATH, "utf8"));
     if (config && config.apiKey) {
@@ -40,7 +60,7 @@ if (fs.existsSync(CONFIG_PATH)) {
       console.log(`[Server DBStore] Firestore client initialized successfully on database: ${config.firestoreDatabaseId || "(default)"}`);
     }
   } catch (e) {
-    console.error("[Server DBStore] Error parsing or initializing Firestore:", e);
+    console.error("[Server DBStore] Error parsing or initializing Firestore from file:", e);
   }
 }
 
